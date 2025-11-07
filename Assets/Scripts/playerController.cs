@@ -38,6 +38,22 @@ public class playerController : MonoBehaviour
         StartCoroutine(TrySlide(new Vector3Int(x, y, 0)));
     }
 
+    public void TeleportTo(Vector3 worldPosition)
+    {
+        if (moving) return; // Don't teleport while moving
+        
+        // Calculate new cell position
+        Vector3Int newCell = grid.WorldToCell(worldPosition);
+        Vector3 snapPosition = grid.GetCellCenterWorld(newCell);
+        
+        // Update position and internal state
+        transform.position = snapPosition;
+        playerCell = newCell;
+    }
+
+    // Also add a property to check if moving
+    public bool IsMoving => moving;
+
     IEnumerator TrySlide(Vector3Int dir)
     {
         Vector3Int next = playerCell + dir;
