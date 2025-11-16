@@ -15,6 +15,13 @@ public class TeleportBlock : MonoBehaviour
     [Tooltip("If true, teleporter is single-use")]
     public bool singleUse = false;
     
+    [Header("Moveable Settings")]
+    [Tooltip("Can moveables use this teleporter?")]
+    public bool allowMoveables = true;
+    
+    [Tooltip("Reference to moveables tilemap")]
+    public Tilemap moveablesTilemap;
+    
     [Header("Reactivation Settings")]
     [Tooltip("Require player to step off and back on to use again")]
     public bool requireReentry = true;
@@ -29,7 +36,9 @@ public class TeleportBlock : MonoBehaviour
     [Range(0f, 1f)]
     public float soundVolume = 1f;
     
-    // Internal state
+    [Header("Debug")]
+    public bool debugMode = false;
+    
     private bool canTeleport = true;
     private bool playerInTrigger = false;
     private Collider2D myTrigger;
@@ -52,45 +61,116 @@ public class TeleportBlock : MonoBehaviour
         
         if (grid == null)
         {
-            // Try to find the grid in the scene
-            grid = FindObjectOfType<Grid>();
+            grid = FindFirstObjectByType<Grid>();
             if (grid == null)
             {
                 Debug.LogError($"{name}: Grid reference not found!");
+            }
+        }
+        
+        if (moveablesTilemap == null && allowMoveables)
+        {
+            GameObject moveablesObj = GameObject.Find("Moveables");
+            if (moveablesObj != null)
+                moveablesTilemap = moveablesObj.GetComponent<Tilemap>();
+                
+            if (debugMode && moveablesTilemap == null)
+                Debug.LogWarning($"{name}: Moveables tilemap not found!");
+        }
+    }
+    
+    void Update()
+    {
+        
+        if (allowMoveables && canTeleport && moveablesTilemap != null && grid != null && destination != null)
+        {
+            Vector3Int currentCell = grid.WorldToCell(transform.position);
+            if (moveablesTilemap.HasTile(currentCell))
+            {
+                if (debugMode) Debug.Log($"Found moveable tile at {currentCell}");
+                
+                if (!IsDestinationBlocked())
+                {
+                    TeleportMoveableTile(currentCell);
+                }
             }
         }
     }
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player")) return;
+        if (debugMode) Debug.Log($"OnTriggerEnter: {other.name} with tag '{other.tag}'");
         
-        playerInTrigger = true;
-        
-        // Check if player is currently moving using the public property
-        var playerCtrl = other.GetComponent<playerController>();
-        if (playerCtrl != null && playerCtrl.IsMoving)
+        if (other.CompareTag("Player"))
         {
-            return; // Don't teleport while player is moving
+            playerInTrigger = true;
+            
+            if (IsDestinationBlocked())
+            {
+                if (debugMode) Debug.Log("Player teleport blocked - destination occupied");
+                return;
+            }
+            
+            var playerCtrl = other.GetComponent<playerController>();
+            if (playerCtrl != null && playerCtrl.IsMoving)
+            {
+                if (debugMode) Debug.Log("Player is still moving, waiting...");
+                return;
+            }
+            
+            if (canTeleport && destination != null)
+            {
+                TeleportPlayer(other);
+            }
         }
-        
-        if (canTeleport && destination != null)
+        else if (allowMoveables && other.CompareTag("Moveable"))
         {
-            TeleportPlayer(other);
+            if (debugMode) Debug.Log($"Moveable object detected: {other.name}");
+            
+            if (!canTeleport)
+            {
+                if (debugMode) Debug.Log("Teleporter on cooldown");
+                return;
+            }
+            
+            if (IsDestinationBlocked())
+            {
+                if (debugMode) Debug.Log("Moveable teleport blocked - destination occupied");
+                return;
+            }
+            
+            if (destination != null)
+            {
+                TeleportMoveable(other.gameObject);
+            }
+        }
+        else if (debugMode)
+        {
+            Debug.Log($"Object {other.name} entered but has wrong tag: '{other.tag}'");
         }
     }
     
     void OnTriggerStay2D(Collider2D other)
     {
-        if (!other.CompareTag("Player")) return;
-        
-        // Try to teleport if player finished moving while on the teleporter
-        if (canTeleport && destination != null && playerInTrigger)
+        if (other.CompareTag("Player"))
         {
-            var playerCtrl = other.GetComponent<playerController>();
-            if (playerCtrl != null && !playerCtrl.IsMoving)
+            if (IsDestinationBlocked()) return;
+            
+            if (canTeleport && destination != null && playerInTrigger)
             {
-                TeleportPlayer(other);
+                var playerCtrl = other.GetComponent<playerController>();
+                if (playerCtrl != null && !playerCtrl.IsMoving)
+                {
+                    TeleportPlayer(other);
+                }
+            }
+        }
+        else if (allowMoveables && other.CompareTag("Moveable") && canTeleport)
+        {
+           
+            if (destination != null && !IsDestinationBlocked())
+            {
+                TeleportMoveable(other.gameObject);
             }
         }
     }
@@ -101,36 +181,51 @@ public class TeleportBlock : MonoBehaviour
         
         playerInTrigger = false;
         
-        // Re-enable teleporting after player leaves (if not on cooldown)
         if (requireReentry && cooldownCoroutine == null)
         {
             canTeleport = true;
         }
     }
     
+    private bool IsDestinationBlocked()
+    {
+        if (destination == null || grid == null) return false;
+        
+        Vector3Int destCell = grid.WorldToCell(destination.position);
+        Vector3 destPos = grid.GetCellCenterWorld(destCell);
+        
+        if (moveablesTilemap != null && moveablesTilemap.HasTile(destCell))
+        {
+            if (debugMode) Debug.Log($"Destination blocked by moveable tile at {destCell}");
+            return true;
+        }
+        
+        float checkRadius = grid.cellSize.x * 0.4f;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(destPos, checkRadius);
+        
+        foreach (Collider2D col in colliders)
+        {
+            if (col.CompareTag("Moveable"))
+            {
+                if (debugMode) Debug.Log($"Destination blocked by moveable object: {col.name}");
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     private void TeleportPlayer(Collider2D playerCollider)
     {
         if (!canTeleport || destination == null) return;
         
-        // Get player controller
         var playerCtrl = playerCollider.GetComponent<playerController>();
         if (playerCtrl == null || playerCtrl.IsMoving) return;
         
-        // Effects at source
-        if (enterEffect)
-        {
-            enterEffect.transform.position = transform.position;
-            enterEffect.Play();
-        }
-        if (teleportSound)
-        {
-            AudioSource.PlayClipAtPoint(teleportSound, transform.position, soundVolume);
-        }
+        PlayTeleportEffects(transform.position);
         
-        // Teleport the player using the public method
         playerCtrl.TeleportTo(destination.position);
         
-        // Effects at destination
         Vector3 destPos = destination.position;
         if (grid != null)
         {
@@ -138,17 +233,79 @@ public class TeleportBlock : MonoBehaviour
             destPos = grid.GetCellCenterWorld(destCell);
         }
         
-        if (exitEffect)
+        PlayTeleportEffects(destPos, true);
+        
+        if (debugMode) Debug.Log($"Teleported player to {destPos}");
+        
+        HandlePostTeleport();
+    }
+    
+    private void TeleportMoveable(GameObject moveable)
+    {
+        if (!canTeleport || destination == null || grid == null) return;
+        
+        if (debugMode) Debug.Log($"Teleporting moveable {moveable.name}");
+        
+        PlayTeleportEffects(moveable.transform.position);
+        
+        Vector3Int destCell = grid.WorldToCell(destination.position);
+        Vector3 destPos = grid.GetCellCenterWorld(destCell);
+        
+        moveable.transform.position = destPos;
+        
+        PlayTeleportEffects(destPos, true);
+        
+        Debug.Log($"Teleported moveable {moveable.name} from {moveable.transform.position} to {destPos} (cell: {destCell})");
+        
+        HandlePostTeleport();
+    }
+    
+    private void TeleportMoveableTile(Vector3Int fromCell)
+    {
+        if (destination == null || grid == null || moveablesTilemap == null) return;
+        
+        Vector3Int destCell = grid.WorldToCell(destination.position);
+        
+        if (debugMode) Debug.Log($"Teleporting tile from {fromCell} to {destCell}");
+        
+        TileBase tile = moveablesTilemap.GetTile(fromCell);
+        if (tile == null)
         {
-            exitEffect.transform.position = destPos;
-            exitEffect.Play();
-        }
-        if (teleportSound)
-        {
-            AudioSource.PlayClipAtPoint(teleportSound, destPos, soundVolume * 0.8f);
+            if (debugMode) Debug.Log("No tile found to teleport!");
+            return;
         }
         
-        // Handle reuse logic
+        moveablesTilemap.SetTile(fromCell, null);
+        moveablesTilemap.SetTile(destCell, tile);
+        moveablesTilemap.RefreshTile(fromCell);
+        moveablesTilemap.RefreshTile(destCell);
+        
+        PlayTeleportEffects(grid.GetCellCenterWorld(fromCell));
+        PlayTeleportEffects(grid.GetCellCenterWorld(destCell), true);
+        
+        Debug.Log($"Teleported moveable tile from {fromCell} to {destCell}");
+        
+        HandlePostTeleport();
+    }
+    
+    private void PlayTeleportEffects(Vector3 position, bool isExit = false)
+    {
+        var effect = isExit ? exitEffect : enterEffect;
+        if (effect)
+        {
+            effect.transform.position = position;
+            effect.Play();
+        }
+        
+        if (teleportSound)
+        {
+            float volume = isExit ? soundVolume * 0.8f : soundVolume;
+            AudioSource.PlayClipAtPoint(teleportSound, position, volume);
+        }
+    }
+    
+    private void HandlePostTeleport()
+    {
         if (singleUse)
         {
             canTeleport = false;
@@ -156,16 +313,7 @@ public class TeleportBlock : MonoBehaviour
             var renderer = GetComponent<SpriteRenderer>();
             if (renderer) renderer.enabled = false;
         }
-        else if (requireReentry)
-        {
-            canTeleport = false;
-            if (reuseCooldown > 0)
-            {
-                if (cooldownCoroutine != null) StopCoroutine(cooldownCoroutine);
-                cooldownCoroutine = StartCoroutine(CooldownCoroutine());
-            }
-        }
-        else if (reuseCooldown > 0)
+        else if (requireReentry || reuseCooldown > 0)
         {
             canTeleport = false;
             if (cooldownCoroutine != null) StopCoroutine(cooldownCoroutine);
@@ -178,14 +326,12 @@ public class TeleportBlock : MonoBehaviour
         yield return new WaitForSeconds(reuseCooldown);
         cooldownCoroutine = null;
         
-        // Only re-enable if player has left the trigger (when requireReentry is true)
         if (!requireReentry || !playerInTrigger)
         {
             canTeleport = true;
         }
     }
     
-    // Public method to reset the teleporter
     public void ResetTeleporter()
     {
         canTeleport = true;
@@ -199,7 +345,6 @@ public class TeleportBlock : MonoBehaviour
         if (renderer) renderer.enabled = true;
     }
     
-    // For debugging
     void OnDrawGizmos()
     {
         if (destination != null)
@@ -213,7 +358,12 @@ public class TeleportBlock : MonoBehaviour
                 Vector3Int destCell = grid.WorldToCell(destination.position);
                 Vector3 cellCenter = grid.GetCellCenterWorld(destCell);
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireCube(cellCenter, Vector3.one * 0.9f);
+                Gizmos.DrawWireCube(cellCenter, grid.cellSize * 0.95f);
+                
+                Vector3Int myCell = grid.WorldToCell(transform.position);
+                Vector3 myCenter = grid.GetCellCenterWorld(myCell);
+                Gizmos.color = Color.green;
+                Gizmos.DrawWireCube(myCenter, grid.cellSize * 0.9f);
             }
         }
     }
