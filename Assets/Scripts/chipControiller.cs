@@ -21,6 +21,12 @@ public class chipController : MonoBehaviour
     [SerializeField] private int uiSortingOrder = 100; // Sorting order for UI chips
     [SerializeField] private bool animateCollection = true; // Animate chip to UI position
     
+    [Header("Hover Animation")]
+    [SerializeField] private float hoverHeight = 0.1f; // How high the chip hovers
+    [SerializeField] private float hoverSpeed = 2f; // Speed of hover animation
+    [SerializeField] private float hoverScaleAmount = 0.05f; // Scale change amount (5% by default)
+    [SerializeField] private float randomOffsetRange = 0.5f; // Random offset for animation sync
+    
     [Header("Audio (Optional)")]
     [SerializeField] private AudioClip chipCollectSound;
     [SerializeField] private AudioClip allChipsCollectedSound;
@@ -35,6 +41,11 @@ public class chipController : MonoBehaviour
     public int CollectedCount => collectedChips.Count;
     public float CollectionProgress => TotalChips > 0 ? (float)CollectedCount / TotalChips : 0f;
     
+    // Hover settings getter for ChipCollector
+    public float HoverHeight => hoverHeight;
+    public float HoverSpeed => hoverSpeed;
+    public float HoverScaleAmount => hoverScaleAmount;
+    
     void Start()
     {
         // Find all objects tagged "chip" in the scene
@@ -46,14 +57,15 @@ public class chipController : MonoBehaviour
             Debug.Log($"ChipController: Found {allChips.Count} chips in the scene");
         }
         
-        // Set up each chip
-        foreach (GameObject chip in allChips)
+        // Set up each chip with a random animation offset
+        for (int i = 0; i < allChips.Count; i++)
         {
-            SetupChip(chip);
+            float randomOffset = Random.Range(0f, randomOffsetRange);
+            SetupChip(allChips[i], randomOffset);
         }
     }
     
-    void SetupChip(GameObject chip)
+    void SetupChip(GameObject chip, float animationOffset)
     {
         // Make sure chip has a collider set as trigger
         Collider2D col = chip.GetComponent<Collider2D>();
@@ -67,7 +79,7 @@ public class chipController : MonoBehaviour
         if (chip.GetComponent<ChipCollector>() == null)
         {
             ChipCollector collector = chip.AddComponent<ChipCollector>();
-            collector.Initialize(this);
+            collector.Initialize(this, animationOffset);
         }
     }
     
@@ -80,6 +92,13 @@ public class chipController : MonoBehaviour
         }
         
         collectedChips.Add(chip);
+        
+        // Stop hover animation
+        ChipCollector collector = chip.GetComponent<ChipCollector>();
+        if (collector != null)
+        {
+            collector.StopHover();
+        }
         
         // Play collection sound
         if (chipCollectSound != null)
@@ -148,7 +167,7 @@ public class chipController : MonoBehaviour
         
         Vector3 startPosition = chip.transform.position;
         Vector3 startScale = chip.transform.localScale;
-        Vector3 targetScale = startScale * collectedScale;
+        Vector3 targetScale = Vector3.one * collectedScale; // Use base scale
         
         float journey = 0f;
         while (journey <= 1f)
@@ -184,7 +203,7 @@ public class chipController : MonoBehaviour
         
         // Move and scale
         chip.transform.position = targetPosition;
-        chip.transform.localScale *= collectedScale;
+        chip.transform.localScale = Vector3.one * collectedScale;
     }
     
     void CheckAllChipsCollected()
@@ -248,15 +267,49 @@ public class chipController : MonoBehaviour
     }
 }
 
-// Helper component for individual chips
+// Helper component for individual chips with hover animation
 public class ChipCollector : MonoBehaviour
 {
     private chipController controller;
     private bool collected = false;
+    private float animationOffset = 0f;
+    private bool hovering = true;
     
-    public void Initialize(chipController chipController)
+    // Cache initial values
+    private Vector3 originalPosition;
+    private Vector3 originalScale;
+    
+    public void Initialize(chipController chipController, float offset)
     {
         controller = chipController;
+        animationOffset = offset;
+        originalPosition = transform.position;
+        originalScale = transform.localScale;
+        hovering = true;
+    }
+    
+    void Update()
+    {
+        if (!hovering || collected) return;
+        
+        if (controller == null) return;
+        
+        // Calculate hover animation
+        float time = Time.time * controller.HoverSpeed + animationOffset;
+        
+        // Vertical hover using sine wave
+        float yOffset = Mathf.Sin(time) * controller.HoverHeight;
+        transform.position = originalPosition + Vector3.up * yOffset;
+        
+        // Scale animation to simulate depth (closer = bigger, farther = smaller)
+        // When chip is up (positive yOffset), it should be slightly larger
+        float scaleMultiplier = 1f + (yOffset / controller.HoverHeight) * controller.HoverScaleAmount;
+        transform.localScale = originalScale * scaleMultiplier;
+    }
+    
+    public void StopHover()
+    {
+        hovering = false;
     }
     
     void OnTriggerEnter2D(Collider2D other)
