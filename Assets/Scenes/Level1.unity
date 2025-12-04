@@ -3617,6 +3617,16 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: 5, y: 7, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 1
+      m_TileSpriteIndex: 1
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   - first: {x: 6, y: 7, z: 0}
     second:
       serializedVersion: 2
@@ -3647,12 +3657,22 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: 9, y: 7, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 1
+      m_TileSpriteIndex: 1
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
+  - m_RefCount: 2
+    m_Data: {fileID: 11400000, guid: 5128d519bf59d2740b7cc5a6e4722231, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: ef73317a8065bec4eabf14da3b2dbdd6, type: 2}
   - m_RefCount: 2
@@ -3688,8 +3708,8 @@ Tilemap:
   m_TileSpriteArray:
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
+  - m_RefCount: 2
+    m_Data: {fileID: -685418807, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: -648323338, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   - m_RefCount: 2
@@ -3723,7 +3743,7 @@ Tilemap:
   - m_RefCount: 1
     m_Data: {fileID: 1333640787, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 75
+  - m_RefCount: 77
     m_Data:
       e00: 1
       e01: 0
@@ -3760,7 +3780,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 76
+  - m_RefCount: 78
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -4227,7 +4247,7 @@ MonoBehaviour:
   allChips: []
   collectedChips: []
   allChipsCollected: 0
-  firstChipUIPosition: {x: -8, y: 4}
+  screenMargin: {x: 0.05, y: 0.05}
   chipSpacing: 0.5
   moveToUISpeed: 2
   arrangeHorizontally: 1
