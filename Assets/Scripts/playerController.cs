@@ -82,6 +82,25 @@ public class playerController : MonoBehaviour
         }
     }
 
+    GameObject GetMoveableObjectAt(Vector3Int c)
+    {
+        Vector3 worldPos = grid.GetCellCenterWorld(c);
+        float checkRadius = grid.cellSize.x * 0.45f; 
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius, obstacleCheckLayers);
+        
+        foreach (Collider2D col in colliders)
+        {
+            if (col.gameObject == gameObject) continue;
+            if (!col.enabled) continue;
+            if (col.CompareTag("Moveable"))
+            {
+                if (debugMode) Debug.Log($"Found moveable object: {col.gameObject.name} at {c}");
+                return col.gameObject;
+            }
+        }
+        return null;
+    }
+
     IEnumerator TryDash(Vector3Int dir)
     {
         if (debugMode) Debug.Log($"Attempting dash in direction {dir}");
@@ -99,7 +118,7 @@ public class playerController : MonoBehaviour
                 break;
             }
             
-            if (HasBox(checkPos))
+            if (HasBox(checkPos) || GetMoveableObjectAt(checkPos) != null)
             {
                 if (debugMode) Debug.Log($"Can't dash through box at distance {i}");
                 break;
@@ -189,7 +208,10 @@ public class playerController : MonoBehaviour
             yield break;
         }
 
-        bool pushing = HasBox(next);
+        bool pushingTile = HasBox(next);
+        GameObject moveableObj = GetMoveableObjectAt(next);
+        bool pushing = pushingTile || (moveableObj != null);
+        
         Vector3Int boxFrom = next, boxTo = next + dir;
 
         if (pushing)
@@ -203,7 +225,7 @@ public class playerController : MonoBehaviour
                 yield break;
             }
             
-            if (HasBox(boxTo))
+            if (HasBox(boxTo) || GetMoveableObjectAt(boxTo) != null)
             {
                 if (debugMode) Debug.Log($"Box can't push another box at {boxTo}");
                 yield break;
@@ -223,12 +245,22 @@ public class playerController : MonoBehaviour
 
         TileBase boxTile = null;
         Vector3 boxDelta = Vector3.zero;
+        Vector3 moveableStart = Vector3.zero;
+        
         if (pushing)
         {
-            boxTile = moveablesTilemap.GetTile(boxFrom);
-            Vector3 boxStart = grid.GetCellCenterWorld(boxFrom);
-            Vector3 boxEnd = grid.GetCellCenterWorld(boxTo);
-            boxDelta = boxEnd - boxStart;
+            if (moveableObj != null)
+            {
+                moveableStart = moveableObj.transform.position;
+                boxDelta = grid.GetCellCenterWorld(boxTo) - moveableStart;
+            }
+            else if (pushingTile)
+            {
+                boxTile = moveablesTilemap.GetTile(boxFrom);
+                Vector3 boxStart = grid.GetCellCenterWorld(boxFrom);
+                Vector3 boxEnd = grid.GetCellCenterWorld(boxTo);
+                boxDelta = boxEnd - boxStart;
+            }
         }
 
         moving = true;
@@ -243,8 +275,15 @@ public class playerController : MonoBehaviour
 
             if (pushing)
             {
-                Vector3 offset = Vector3.Lerp(Vector3.zero, boxDelta, u);
-                moveablesTilemap.SetTransformMatrix(boxFrom, Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one));
+                if (moveableObj != null)
+                {
+                    moveableObj.transform.position = moveableStart + (boxDelta * u);
+                }
+                else if (pushingTile)
+                {
+                    Vector3 offset = Vector3.Lerp(Vector3.zero, boxDelta, u);
+                    moveablesTilemap.SetTransformMatrix(boxFrom, Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one));
+                }
             }
             yield return null;
         }
@@ -254,11 +293,18 @@ public class playerController : MonoBehaviour
 
         if (pushing)
         {
-            moveablesTilemap.SetTransformMatrix(boxFrom, Matrix4x4.identity);
-            moveablesTilemap.SetTile(boxTo, boxTile);
-            moveablesTilemap.SetTile(boxFrom, null);
-            moveablesTilemap.RefreshTile(boxFrom);
-            moveablesTilemap.RefreshTile(boxTo);
+            if (moveableObj != null)
+            {
+                moveableObj.transform.position = grid.GetCellCenterWorld(boxTo);
+            }
+            else if (pushingTile)
+            {
+                moveablesTilemap.SetTransformMatrix(boxFrom, Matrix4x4.identity);
+                moveablesTilemap.SetTile(boxTo, boxTile);
+                moveablesTilemap.SetTile(boxFrom, null);
+                moveablesTilemap.RefreshTile(boxFrom);
+                moveablesTilemap.RefreshTile(boxTo);
+            }
         }
         moving = false;
     }

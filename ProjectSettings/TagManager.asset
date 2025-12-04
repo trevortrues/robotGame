@@ -8,6 +8,8 @@ TagManager:
   - Destructable
   - Enemy
   - chip
+  - moveable
+  - Moveable
   layers:
   - Default
   - TransparentFX
