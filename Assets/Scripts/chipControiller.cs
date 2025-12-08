@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 using System.Collections;
 
 public class chipController : MonoBehaviour
@@ -32,6 +34,13 @@ public class chipController : MonoBehaviour
     [SerializeField] private AudioClip allChipsCollectedSound;
     [SerializeField] private float soundVolume = 1f;
     
+    [Header("Scene Transition")]
+    [SerializeField] private string nextScene;
+    [SerializeField] private float nextSceneDelay = 1f;
+    [SerializeField] private bool isFinalScene = false;
+    [SerializeField] private Tilemap winTile;
+    private bool reachedWinTile = false;
+
     [Header("Debug")]
     [SerializeField] private bool debugMode = false;
     
@@ -45,6 +54,7 @@ public class chipController : MonoBehaviour
     public float HoverHeight => hoverHeight;
     public float HoverSpeed => hoverSpeed;
     public float HoverScaleAmount => hoverScaleAmount;
+    public Tilemap WinTile => winTile;
     
     void Start()
     {
@@ -67,6 +77,25 @@ public class chipController : MonoBehaviour
         {
             float randomOffset = Random.Range(0f, randomOffsetRange);
             SetupChip(allChips[i], randomOffset);
+        }
+
+        if (isFinalScene)
+        {
+            reachedWinTile = true;
+            StartCoroutine(AutoCollectAllChips());
+        }
+    }
+
+    IEnumerator AutoCollectAllChips()
+    {
+        yield return null; // Wait one frame for chips to be set up
+
+        foreach (GameObject chip in allChips)
+        {
+            if (!collectedChips.Contains(chip))
+            {
+                CollectChip(chip);
+            }
         }
     }
     
@@ -239,8 +268,45 @@ public class chipController : MonoBehaviour
     {
         if (debugMode)
         {
+            Debug.Log("All chips collected! Waiting for win tile...");
+        }
+
+        TryTransitionToNextScene();
+    }
+
+    public void OnReachedWinTile()
+    {
+        if (reachedWinTile) return;
+
+        reachedWinTile = true;
+
+        if (debugMode)
+        {
+            Debug.Log("Reached win tile!");
+        }
+
+        TryTransitionToNextScene();
+    }
+
+    void TryTransitionToNextScene()
+    {
+        if (!allChipsCollected || !reachedWinTile) return;
+
+        if (debugMode)
+        {
             Debug.Log("Ready for next level!");
         }
+
+        if (!isFinalScene && !string.IsNullOrEmpty(nextScene))
+        {
+            StartCoroutine(LoadNextSceneAfterDelay());
+        }
+    }
+
+    IEnumerator LoadNextSceneAfterDelay()
+    {
+        yield return new WaitForSeconds(nextSceneDelay);
+        SceneManager.LoadScene(nextScene);
     }
     
     float EaseInOutCubic(float t)

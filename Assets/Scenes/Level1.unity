@@ -4262,6 +4262,8 @@ MonoBehaviour:
   chipCollectSound: {fileID: 0}
   allChipsCollectedSound: {fileID: 0}
   soundVolume: 1
+  nextScene: Level2
+  isFinalScene: 0
   debugMode: 0
 --- !u!114 &1898360679
 MonoBehaviour:

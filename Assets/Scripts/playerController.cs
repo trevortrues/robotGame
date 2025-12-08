@@ -9,6 +9,7 @@ public class playerController : MonoBehaviour
     [SerializeField] Tilemap wallsTilemap;
     [SerializeField] Tilemap moveablesTilemap;
     [SerializeField] Tilemap destructablesTilemap;
+    [SerializeField] chipController chipController;
     [SerializeField] float stepTime = 0.12f;
     [SerializeField] bool preferHorizontal = true;
     [SerializeField] LayerMask obstacleCheckLayers = -1;
@@ -172,8 +173,10 @@ public class playerController : MonoBehaviour
         transform.position = endPos;
         playerCell = targetCell;
         moving = false;
-        
+
         if (debugMode) Debug.Log($"Dashed {actualDashDistance} cells to {playerCell}");
+
+        CheckWinTile();
     }
     
     float EaseOutCubic(float t)
@@ -307,6 +310,8 @@ public class playerController : MonoBehaviour
             }
         }
         moving = false;
+
+        CheckWinTile();
     }
 
     bool IsBlockedForPlayer(Vector3Int c)
@@ -407,6 +412,16 @@ public class playerController : MonoBehaviour
     }
 
     bool HasBox(Vector3Int c) => moveablesTilemap.HasTile(c);
+
+    void CheckWinTile()
+    {
+        if (chipController == null || chipController.WinTile == null) return;
+
+        if (chipController.WinTile.HasTile(playerCell))
+        {
+            chipController.OnReachedWinTile();
+        }
+    }
     
     void OnDrawGizmos()
     {
