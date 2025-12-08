@@ -158,19 +158,39 @@ public class TeleportBlock : MonoBehaviour
         return false;
     }
 
-    /// <summary>
-    /// Called by playerController when a moveable is pushed onto this teleporter.
-    /// Ensures the moveable teleports immediately before any player teleport checks.
-    /// </summary>
+
     public void OnMoveablePushedHere()
     {
-        TryTeleportMoveableImmediately();
+        if (!allowMoveables || grid == null || destination == null)
+            return;
+
+        if (IsDestinationBlockedByMoveable())
+            return;
+
+        Vector3Int currentCell = grid.WorldToCell(transform.position);
+
+        if (moveablesTilemap != null && moveablesTilemap.HasTile(currentCell))
+        {
+            TeleportMoveableTile(currentCell);
+            return;
+        }
+
+        Vector3 worldPos = grid.GetCellCenterWorld(currentCell);
+        float checkRadius = grid.cellSize.x * 0.9f; // Large radius to ensure we find it
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
+
+        foreach (Collider2D col in colliders)
+        {
+            if (col.CompareTag("Moveable"))
+            {
+                TeleportMoveable(col.gameObject);
+                lastTeleportedMoveable = col.gameObject;
+                StartCoroutine(ClearLastTeleportedMoveable());
+                return;
+            }
+        }
     }
 
-    /// <summary>
-    /// Immediately teleports any moveable on this teleporter. Called from trigger callbacks
-    /// to ensure moveables teleport BEFORE player teleport checks.
-    /// </summary>
     void TryTeleportMoveableImmediately()
     {
         if (!allowMoveables || !canTeleport || grid == null || destination == null)

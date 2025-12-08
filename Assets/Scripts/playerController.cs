@@ -435,17 +435,16 @@ public class playerController : MonoBehaviour
 
     void NotifyTeleportersOfPush(Vector3Int cellPos)
     {
-        Vector3 worldPos = grid.GetCellCenterWorld(cellPos);
-        float checkRadius = grid.cellSize.x * 0.5f;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
+        TeleportBlock[] allTeleporters = FindObjectsOfType<TeleportBlock>();
 
-        foreach (Collider2D col in colliders)
+        foreach (TeleportBlock teleporter in allTeleporters)
         {
-            TeleportBlock teleporter = col.GetComponent<TeleportBlock>();
-            if (teleporter != null)
+            Vector3Int teleporterCell = grid.WorldToCell(teleporter.transform.position);
+            if (teleporterCell == cellPos)
             {
+                if (debugMode) Debug.Log($"Found teleporter at {cellPos}, triggering moveable teleport");
                 teleporter.OnMoveablePushedHere();
-                break;
+                return;
             }
         }
     }
