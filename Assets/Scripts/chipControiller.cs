@@ -39,6 +39,9 @@ public class chipController : MonoBehaviour
     [SerializeField] private float nextSceneDelay = 1f;
     [SerializeField] private bool isFinalScene = false;
     [SerializeField] private Tilemap winTile;
+    [SerializeField] private TileBase winTileAnimated;
+    [SerializeField] private TileBase winTileFinal;
+    [SerializeField] private float winTileAnimationDuration = 1f;
     private bool reachedWinTile = false;
 
     [Header("Debug")]
@@ -133,7 +136,7 @@ public class chipController : MonoBehaviour
 
         if (chipCollectSound != null)
         {
-            AudioSource.PlayClipAtPoint(chipCollectSound, chip.transform.position, soundVolume);
+            PlayRandomClipSegment(chipCollectSound, chip.transform.position, 2f);
         }
 
         int index = collectedChips.Count - 1;
@@ -255,9 +258,9 @@ public class chipController : MonoBehaviour
                 Debug.Log("ALL CHIPS COLLECTED! Level complete!");
             }
             
-            if (allChipsCollectedSound != null)
+            if (chipCollectSound != null)
             {
-                AudioSource.PlayClipAtPoint(allChipsCollectedSound, mainCamera.transform.position, soundVolume);
+                PlayLastClipSegment(chipCollectSound, mainCamera.transform.position, 2f);
             }
             
             OnAllChipsCollected();
@@ -271,7 +274,51 @@ public class chipController : MonoBehaviour
             Debug.Log("All chips collected! Waiting for win tile...");
         }
 
+        ActivateWinTileAnimation();
         TryTransitionToNextScene();
+    }
+
+    void ActivateWinTileAnimation()
+    {
+        if (winTile == null || winTileAnimated == null) return;
+
+        BoundsInt bounds = winTile.cellBounds;
+        for (int x = bounds.xMin; x < bounds.xMax; x++)
+        {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+                if (winTile.HasTile(pos))
+                {
+                    winTile.SetTile(pos, winTileAnimated);
+                }
+            }
+        }
+        winTile.RefreshAllTiles();
+
+        if (winTileFinal != null)
+        {
+            StartCoroutine(SwapToFinalTile());
+        }
+    }
+
+    IEnumerator SwapToFinalTile()
+    {
+        yield return new WaitForSeconds(winTileAnimationDuration);
+
+        BoundsInt bounds = winTile.cellBounds;
+        for (int x = bounds.xMin; x < bounds.xMax; x++)
+        {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+                if (winTile.HasTile(pos))
+                {
+                    winTile.SetTile(pos, winTileFinal);
+                }
+            }
+        }
+        winTile.RefreshAllTiles();
     }
 
     public void OnReachedWinTile()
@@ -313,7 +360,44 @@ public class chipController : MonoBehaviour
     {
         return t < 0.5f ? 4f * t * t * t : 1f - Mathf.Pow(-2f * t + 2f, 3f) / 2f;
     }
-    
+
+    void PlayRandomClipSegment(AudioClip clip, Vector3 position, float duration, bool excludeLastSegment = true)
+    {
+        GameObject tempAudio = new GameObject("TempAudio");
+        tempAudio.transform.position = position;
+        AudioSource audioSource = tempAudio.AddComponent<AudioSource>();
+        audioSource.clip = clip;
+        audioSource.volume = soundVolume;
+
+        float maxStartTime;
+        if (excludeLastSegment)
+        {
+            maxStartTime = Mathf.Max(0f, clip.length - duration * 2);
+        }
+        else
+        {
+            maxStartTime = Mathf.Max(0f, clip.length - duration);
+        }
+        audioSource.time = Random.Range(0f, maxStartTime);
+        audioSource.Play();
+
+        Destroy(tempAudio, duration);
+    }
+
+    void PlayLastClipSegment(AudioClip clip, Vector3 position, float duration)
+    {
+        GameObject tempAudio = new GameObject("TempAudio");
+        tempAudio.transform.position = position;
+        AudioSource audioSource = tempAudio.AddComponent<AudioSource>();
+        audioSource.clip = clip;
+        audioSource.volume = soundVolume;
+
+        audioSource.time = Mathf.Max(0f, clip.length - duration);
+        audioSource.Play();
+
+        Destroy(tempAudio, duration);
+    }
+
     public void ResetChips()
     {
         collectedChips.Clear();

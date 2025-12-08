@@ -7,8 +7,13 @@ public class Gate : MonoBehaviour
     public bool isOpenAtStart = false;
     
     [Header("Grid Settings")]
-    public Grid grid; 
+    public Grid grid;
     public bool snapToGridOnStart = true;
+
+    [Header("Audio")]
+    public AudioClip openSound;
+    [Range(0f, 1f)]
+    public float soundVolume = 1f;
 
     Collider2D _collider;
     SpriteRenderer _renderer;
@@ -72,6 +77,11 @@ public class Gate : MonoBehaviour
         {
             gameObject.tag = "Untagged";
             Debug.Log("Gate opened - Tag set to Untagged");
+
+            if (openSound != null)
+            {
+                AudioSource.PlayClipAtPoint(openSound, transform.position, soundVolume);
+            }
         }
         else
         {

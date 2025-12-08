@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13b75c95f34a00d4e8c04f76b73312e6, type: 3}
+  m_Name: WinTileAnimated
+  m_EditorClassIdentifier: Unity.2D.Tilemap.Extras::UnityEngine.Tilemaps.AnimatedTile
+  m_AnimatedSprites:
+  - {fileID: -9013480466962050287, guid: 43e7848f938ef8e4a84a658c3ebf7d5c, type: 3}
+  - {fileID: -9013480466962050287, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -5951465893144145165, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 4101758247924072267, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 8098069700649775407, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -6761298249856769705, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 8892970835322241530, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -4558900400978708064, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -4790783078172379922, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -5824513772393894016, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 1390783697132053160, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 5645395565785345636, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 5934221083385137883, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -5731642681084619445, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -1192260803509644055, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 2502678848142713630, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -3265771540842994610, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 2996877932842135656, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -358405513372501616, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 6380776326523153831, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -5563866999740683132, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 2242615433416338241, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 5165640367345361488, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 1457736253495920701, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -7678725575920021315, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -7290995486414246877, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 5335298695411347513, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -7426508410700016387, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 8165858855774307866, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -5511348588016967091, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 2904396390910179582, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 2270253631791042674, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 4491899651889538230, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -4430824806132475326, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: 1715156239499205451, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -3000197712457341772, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -7616600502086013895, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -6680499965873470167, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -1861260279288265895, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -3003228442059769290, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  - {fileID: -3074103085796612395, guid: e9607b348d698e4428ac466b44ecc1bb, type: 3}
+  m_MinSpeed: 10
+  m_MaxSpeed: 10
+  m_AnimationStartTime: 0
+  m_AnimationStartFrame: 0
+  m_TileColliderType: 0
+  m_TileAnimationFlags: 0

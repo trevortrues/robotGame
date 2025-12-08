@@ -2108,7 +2108,12 @@ MonoBehaviour:
   destructablesTilemap: {fileID: 97450152}
   checkInterval: 0.01
   destroyEffectPrefab: {fileID: 0}
-  destroySound: {fileID: 0}
+  destructedSprites:
+  - {fileID: -2128986540, guid: 2aa9c79ee3812584cbbf021ba03289bf, type: 3}
+  - {fileID: -1281954845, guid: 2aa9c79ee3812584cbbf021ba03289bf, type: 3}
+  - {fileID: 619415397, guid: 2aa9c79ee3812584cbbf021ba03289bf, type: 3}
+  - {fileID: 1352468532, guid: 2aa9c79ee3812584cbbf021ba03289bf, type: 3}
+  destroySound: {fileID: 8300000, guid: 3fd3d25cd8cbdde4e9b4b2ddc4c58800, type: 3}
   soundVolume: 1
 --- !u!4 &441067097
 Transform:
@@ -2218,6 +2223,52 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a16541664f8ed4673a2d1685946d06fe, type: 3}
+--- !u!1 &479176838
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 479176840}
+  - component: {fileID: 479176839}
+  m_Layer: 0
+  m_Name: MusicManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &479176839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 479176838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8be67da9aa680c649b8a4e73c9bc7776, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MusicManager
+  musicClip: {fileID: 8300000, guid: cfdfb6e8743827342bfdb23d2137f729, type: 3}
+  volume: 0.5
+--- !u!4 &479176840
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 479176838}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.60243, y: -0.86871, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &565195920
 GameObject:
   m_ObjectHideFlags: 0
@@ -2623,7 +2674,7 @@ MonoBehaviour:
   reuseCooldown: 0.5
   enterEffect: {fileID: 0}
   exitEffect: {fileID: 0}
-  teleportSound: {fileID: 0}
+  teleportSound: {fileID: 8300000, guid: 44d04ffbcb7751a4abcc7bedd2d54a5b, type: 3}
   soundVolume: 1
 --- !u!61 &1292830529
 BoxCollider2D:
@@ -3318,6 +3369,16 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
+  - first: {x: -3, y: 0, z: 0}
+    second:
+      serializedVersion: 2
+      m_TileIndex: 14
+      m_TileSpriteIndex: 14
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_TileObjectToInstantiateIndex: 65535
+      dummyAlignment: 0
+      m_AllTileFlags: 1073741825
   - first: {x: -2, y: 0, z: 0}
     second:
       serializedVersion: 2
@@ -3788,7 +3849,7 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: c1468c5d05fb00d48b1c3f8b2ddfc43b, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: 8975337b77bb8d2458f07862e48ad4f2, type: 2}
-  - m_RefCount: 50
+  - m_RefCount: 51
     m_Data: {fileID: 11400000, guid: e1551ccd3c160d545acd485a62a03fd3, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: 45e59670b525e52449f85d6f7f60ee74, type: 2}
@@ -3825,7 +3886,7 @@ Tilemap:
     m_Data: {fileID: -1810081963, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: 731781553, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
-  - m_RefCount: 50
+  - m_RefCount: 51
     m_Data: {fileID: -794507625, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: -112003071, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
@@ -3834,7 +3895,7 @@ Tilemap:
   - m_RefCount: 1
     m_Data: {fileID: 1333640787, guid: 7e46db29f750f174e87eb070565396ef, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 77
+  - m_RefCount: 78
     m_Data:
       e00: 1
       e01: 0
@@ -3871,7 +3932,7 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 78
+  - m_RefCount: 79
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -4208,6 +4269,7 @@ MonoBehaviour:
   moveablesTilemap: {fileID: 41575132}
   destructablesTilemap: {fileID: 97450152}
   chipController: {fileID: 1898360678}
+  destructableController: {fileID: 441067096}
   stepTime: 0.12
   preferHorizontal: 1
   obstacleCheckLayers:
@@ -4351,13 +4413,16 @@ MonoBehaviour:
   hoverSpeed: 2
   hoverScaleAmount: 0.05
   randomOffsetRange: 0.5
-  chipCollectSound: {fileID: 0}
+  chipCollectSound: {fileID: 8300000, guid: e090fca35d6e86b4baf865b7a3e6efae, type: 3}
   allChipsCollectedSound: {fileID: 0}
   soundVolume: 1
   nextScene: Level2
-  nextSceneDelay: 2
+  nextSceneDelay: 0.5
   isFinalScene: 0
   winTile: {fileID: 1940423920}
+  winTileAnimated: {fileID: 11400000, guid: 2b52313d4dda8794caaefc628a3576e8, type: 2}
+  winTileFinal: {fileID: 11400000, guid: af79dba73a2cc7c41a5ad60599aa2455, type: 2}
+  winTileAnimationDuration: 1
   debugMode: 0
 --- !u!114 &1898360679
 MonoBehaviour:
@@ -4556,3 +4621,4 @@ SceneRoots:
   - {fileID: 327877927}
   - {fileID: 1385577028}
   - {fileID: 605554039}
+  - {fileID: 479176840}

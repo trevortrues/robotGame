@@ -10,6 +10,7 @@ public class playerController : MonoBehaviour
     [SerializeField] Tilemap moveablesTilemap;
     [SerializeField] Tilemap destructablesTilemap;
     [SerializeField] chipController chipController;
+    [SerializeField] DestructableController destructableController;
     [SerializeField] float stepTime = 0.12f;
     [SerializeField] bool preferHorizontal = true;
     [SerializeField] LayerMask obstacleCheckLayers = -1;
@@ -308,6 +309,9 @@ public class playerController : MonoBehaviour
                 moveablesTilemap.RefreshTile(boxFrom);
                 moveablesTilemap.RefreshTile(boxTo);
             }
+
+            // Check if the pushed moveable landed on a teleporter
+            NotifyTeleportersOfPush(boxTo);
         }
         moving = false;
 
@@ -391,21 +395,27 @@ public class playerController : MonoBehaviour
 
     void DestroyDestructableAt(Vector3Int c)
     {
-        if (HasDestructableTile(c))
+        if (destructableController != null)
         {
-            destructablesTilemap.SetTile(c, null);
-            destructablesTilemap.RefreshTile(c);
+            destructableController.DestroyAt(c);
         }
-        
+        else
+        {
+            if (HasDestructableTile(c))
+            {
+                destructablesTilemap.SetTile(c, null);
+                destructablesTilemap.RefreshTile(c);
+            }
+        }
+
         Vector3 worldPos = grid.GetCellCenterWorld(c);
         float radius = grid.cellSize.x * 0.45f;
         Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, radius, obstacleCheckLayers);
-        
+
         foreach (Collider2D col in colliders)
         {
             if (col.CompareTag("Destructable"))
             {
-                // change sprite to destroyed version (later)
                 Destroy(col.gameObject);
             }
         }
@@ -420,6 +430,23 @@ public class playerController : MonoBehaviour
         if (chipController.WinTile.HasTile(playerCell))
         {
             chipController.OnReachedWinTile();
+        }
+    }
+
+    void NotifyTeleportersOfPush(Vector3Int cellPos)
+    {
+        Vector3 worldPos = grid.GetCellCenterWorld(cellPos);
+        float checkRadius = grid.cellSize.x * 0.5f;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
+
+        foreach (Collider2D col in colliders)
+        {
+            TeleportBlock teleporter = col.GetComponent<TeleportBlock>();
+            if (teleporter != null)
+            {
+                teleporter.OnMoveablePushedHere();
+                break;
+            }
         }
     }
     

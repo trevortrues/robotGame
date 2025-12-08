@@ -15,10 +15,14 @@ public class DestructableController : MonoBehaviour
     public float checkInterval = 0.1f;
     [Tooltip("Destroy effect prefab to spawn when destructable is destroyed")]
     public GameObject destroyEffectPrefab;
+    [Tooltip("Sprites to show after rock is destroyed (picks random)")]
+    public Sprite[] destructedSprites;
     [Tooltip("Sound to play when destructable is destroyed")]
     public AudioClip destroySound;
     [Range(0f, 1f)]
     public float soundVolume = 1f;
+    [Tooltip("Sorting order for debris sprites")]
+    public int debrisSortingOrder = 0;
     
     private HashSet<Vector3Int> previousMoveablePositions = new HashSet<Vector3Int>();
     private float checkTimer = 0f;
@@ -96,6 +100,22 @@ public class DestructableController : MonoBehaviour
 
         Vector3 worldPosition = destructablesTilemap.CellToWorld(tilePosition) + destructablesTilemap.tileAnchor;
 
+        if (destructedSprites != null && destructedSprites.Length > 0)
+        {
+            Sprite randomSprite = destructedSprites[Random.Range(0, destructedSprites.Length)];
+            GameObject debris = new GameObject("DestructedRock");
+            debris.transform.position = worldPosition;
+            SpriteRenderer sr = debris.AddComponent<SpriteRenderer>();
+            sr.sprite = randomSprite;
+
+            TilemapRenderer tilemapRenderer = destructablesTilemap.GetComponent<TilemapRenderer>();
+            if (tilemapRenderer != null)
+            {
+                sr.sortingLayerID = tilemapRenderer.sortingLayerID;
+            }
+            sr.sortingOrder = debrisSortingOrder;
+        }
+
         if (destroyEffectPrefab != null)
         {
             GameObject effect = Instantiate(destroyEffectPrefab, worldPosition, Quaternion.identity);
@@ -106,7 +126,7 @@ public class DestructableController : MonoBehaviour
         {
             AudioSource.PlayClipAtPoint(destroySound, worldPosition, soundVolume);
         }
-        
+
         Debug.Log($"Destroyed destructable at position {tilePosition}");
     }
 

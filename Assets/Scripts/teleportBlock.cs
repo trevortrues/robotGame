@@ -41,7 +41,6 @@ public class TeleportBlock : MonoBehaviour
     private Collider2D myTrigger;
     private Coroutine cooldownCoroutine;
     private GameObject lastTeleportedMoveable = null;
-    private float moveableTeleportDelay = 0.1f; // Small delay to let movement finish
     
     void Awake()
     {
@@ -71,13 +70,13 @@ public class TeleportBlock : MonoBehaviour
         }
     }
     
-    void LateUpdate()
+    void Update()
     {
         if (!allowMoveables || !canTeleport || grid == null || destination == null)
             return;
-            
+
         Vector3Int currentCell = grid.WorldToCell(transform.position);
-        
+
         // Check for moveable tiles - instant teleport
         if (moveablesTilemap != null && moveablesTilemap.HasTile(currentCell))
         {
@@ -87,86 +86,161 @@ public class TeleportBlock : MonoBehaviour
                 return; // Exit after teleporting tile
             }
         }
-        
-        // Check for moveable GameObjects
+
+        // Check for moveable GameObjects with larger radius to catch mid-push
         Vector3 worldPos = grid.GetCellCenterWorld(currentCell);
-        float checkRadius = grid.cellSize.x * 0.4f;
+        float checkRadius = grid.cellSize.x * 0.6f;
         Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
-        
+
         foreach (Collider2D col in colliders)
         {
             if (col.CompareTag("Moveable") && col.gameObject != lastTeleportedMoveable)
             {
                 if (!IsDestinationBlockedByMoveable())
                 {
-                    // Small delay to ensure movement is complete
-                    StartCoroutine(TeleportMoveableDelayed(col.gameObject));
+                    TeleportMoveable(col.gameObject);
                     lastTeleportedMoveable = col.gameObject;
+                    StartCoroutine(ClearLastTeleportedMoveable());
                 }
                 break;
             }
         }
     }
-    
-    IEnumerator TeleportMoveableDelayed(GameObject moveable)
+
+    IEnumerator ClearLastTeleportedMoveable()
     {
-        yield return new WaitForSeconds(moveableTeleportDelay);
-        if (moveable != null)
-        {
-            TeleportMoveable(moveable);
-        }
-        yield return new WaitForSeconds(0.2f); // Short wait before allowing re-teleport
+        yield return new WaitForSeconds(0.2f);
         lastTeleportedMoveable = null;
     }
-    
-    bool IsDestinationBlockedByMoveable()
+
+    bool IsMoveableOnTeleporter()
     {
-        if (destination == null || grid == null) return false;
-        
-        Vector3Int destCell = grid.WorldToCell(destination.position);
-        Vector3 destPos = grid.GetCellCenterWorld(destCell);
-        
-        if (moveablesTilemap != null && moveablesTilemap.HasTile(destCell))
+        if (grid == null) return false;
+
+        Vector3Int currentCell = grid.WorldToCell(transform.position);
+
+        if (moveablesTilemap != null && moveablesTilemap.HasTile(currentCell))
             return true;
-        
-        float checkRadius = grid.cellSize.x * 0.4f;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(destPos, checkRadius);
-        
+
+        // Use larger radius to catch moveables being pushed onto teleporter
+        Vector3 worldPos = grid.GetCellCenterWorld(currentCell);
+        float checkRadius = grid.cellSize.x * 0.7f;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
+
         foreach (Collider2D col in colliders)
         {
             if (col.CompareTag("Moveable"))
                 return true;
         }
-        
+
         return false;
     }
     
+    bool IsDestinationBlockedByMoveable()
+    {
+        if (destination == null || grid == null) return false;
+
+        Vector3Int destCell = grid.WorldToCell(destination.position);
+        Vector3 destPos = grid.GetCellCenterWorld(destCell);
+
+        if (moveablesTilemap != null && moveablesTilemap.HasTile(destCell))
+            return true;
+
+        float checkRadius = grid.cellSize.x * 0.4f;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(destPos, checkRadius);
+
+        foreach (Collider2D col in colliders)
+        {
+            if (col.CompareTag("Moveable"))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Called by playerController when a moveable is pushed onto this teleporter.
+    /// Ensures the moveable teleports immediately before any player teleport checks.
+    /// </summary>
+    public void OnMoveablePushedHere()
+    {
+        TryTeleportMoveableImmediately();
+    }
+
+    /// <summary>
+    /// Immediately teleports any moveable on this teleporter. Called from trigger callbacks
+    /// to ensure moveables teleport BEFORE player teleport checks.
+    /// </summary>
+    void TryTeleportMoveableImmediately()
+    {
+        if (!allowMoveables || !canTeleport || grid == null || destination == null)
+            return;
+
+        if (IsDestinationBlockedByMoveable())
+            return;
+
+        Vector3Int currentCell = grid.WorldToCell(transform.position);
+
+        // Check for moveable tiles first
+        if (moveablesTilemap != null && moveablesTilemap.HasTile(currentCell))
+        {
+            TeleportMoveableTile(currentCell);
+            return;
+        }
+
+        // Check for moveable GameObjects
+        Vector3 worldPos = grid.GetCellCenterWorld(currentCell);
+        float checkRadius = grid.cellSize.x * 0.7f;
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(worldPos, checkRadius);
+
+        foreach (Collider2D col in colliders)
+        {
+            if (col.CompareTag("Moveable") && col.gameObject != lastTeleportedMoveable)
+            {
+                TeleportMoveable(col.gameObject);
+                lastTeleportedMoveable = col.gameObject;
+                StartCoroutine(ClearLastTeleportedMoveable());
+                return;
+            }
+        }
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
             playerInTrigger = true;
-            
+
+            // Teleport any moveable on this teleporter FIRST before player teleports
+            TryTeleportMoveableImmediately();
+
+            if (IsMoveableOnTeleporter())
+                return;
+
             if (IsDestinationBlockedByMoveable())
                 return;
-            
+
             var playerCtrl = other.GetComponent<playerController>();
             if (playerCtrl != null && playerCtrl.IsMoving)
                 return;
-            
+
             if (canTeleport && destination != null)
             {
                 TeleportPlayer(other);
             }
         }
     }
-    
+
     void OnTriggerStay2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
+            // Teleport any moveable on this teleporter FIRST before player teleports
+            TryTeleportMoveableImmediately();
+
+            if (IsMoveableOnTeleporter()) return;
             if (IsDestinationBlockedByMoveable()) return;
-            
+
             if (canTeleport && destination != null && playerInTrigger)
             {
                 var playerCtrl = other.GetComponent<playerController>();
