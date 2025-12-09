@@ -203,48 +203,60 @@ public class chipController : MonoBehaviour
     {
         Collider2D col = chip.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
-        
+
         SpriteRenderer renderer = chip.GetComponent<SpriteRenderer>();
         if (renderer != null)
         {
             renderer.sortingOrder = uiSortingOrder;
         }
-        
+
         Vector3 startPosition = chip.transform.position;
         Vector3 startScale = chip.transform.localScale;
-        Vector3 targetScale = Vector3.one * collectedScale; 
-        
+        Vector3 targetScale = Vector3.one * collectedScale;
+
         float journey = 0f;
         while (journey <= 1f)
         {
             journey += Time.deltaTime * moveToUISpeed;
             float percent = Mathf.Clamp01(journey);
-            
+
             float eased = EaseInOutCubic(percent);
-            
+
             chip.transform.position = Vector3.Lerp(startPosition, targetPosition, eased);
             chip.transform.localScale = Vector3.Lerp(startScale, targetScale, eased);
-            
+
             yield return null;
         }
-        
+
         chip.transform.position = targetPosition;
         chip.transform.localScale = targetScale;
+
+        // Add UIFollowCamera component to make chip stay in screen space
+        UIFollowCamera uiFollow = chip.AddComponent<UIFollowCamera>();
+        int index = collectedChips.IndexOf(chip);
+        uiFollow.SetChipIndex(index, chipSpacing);
+        uiFollow.ForceUpdate();
     }
     
     void MoveChipToUIInstant(GameObject chip, Vector3 targetPosition)
     {
         Collider2D col = chip.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
-        
+
         SpriteRenderer renderer = chip.GetComponent<SpriteRenderer>();
         if (renderer != null)
         {
             renderer.sortingOrder = uiSortingOrder;
         }
-        
+
         chip.transform.position = targetPosition;
         chip.transform.localScale = Vector3.one * collectedScale;
+
+        // Add UIFollowCamera component to make chip stay in screen space
+        UIFollowCamera uiFollow = chip.AddComponent<UIFollowCamera>();
+        int index = collectedChips.IndexOf(chip);
+        uiFollow.SetChipIndex(index, chipSpacing);
+        uiFollow.ForceUpdate();
     }
     
     void CheckAllChipsCollected()

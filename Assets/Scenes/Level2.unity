@@ -2823,8 +2823,10 @@ MonoBehaviour:
   destructablesTilemap: {fileID: 97450152}
   checkInterval: 0.01
   destroyEffectPrefab: {fileID: 0}
+  destructedSprites: []
   destroySound: {fileID: 0}
   soundVolume: 1
+  debrisSortingOrder: 0
 --- !u!4 &441067097
 Transform:
   m_ObjectHideFlags: 0
@@ -3363,7 +3365,7 @@ Transform:
   m_GameObject: {fileID: 1292830527}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.37, y: 4.54, z: 0}
+  m_LocalPosition: {x: 6.56, y: 4.54, z: 0}
   m_LocalScale: {x: 1.4811969, y: 1.3029922, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5710,6 +5712,8 @@ MonoBehaviour:
   wallsTilemap: {fileID: 171605135}
   moveablesTilemap: {fileID: 41575132}
   destructablesTilemap: {fileID: 97450152}
+  chipController: {fileID: 0}
+  destructableController: {fileID: 0}
   stepTime: 0.12
   preferHorizontal: 1
   obstacleCheckLayers:
@@ -6040,6 +6044,13 @@ MonoBehaviour:
   chipCollectSound: {fileID: 0}
   allChipsCollectedSound: {fileID: 0}
   soundVolume: 1
+  nextScene: 
+  nextSceneDelay: 1
+  isFinalScene: 0
+  winTile: {fileID: 0}
+  winTileAnimated: {fileID: 0}
+  winTileFinal: {fileID: 0}
+  winTileAnimationDuration: 1
   debugMode: 0
 --- !u!114 &1898360679
 MonoBehaviour:
